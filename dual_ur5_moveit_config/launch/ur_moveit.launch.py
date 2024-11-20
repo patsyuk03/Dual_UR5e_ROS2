@@ -135,24 +135,6 @@ def launch_setup(context, *args, **kwargs):
     srdf_path = f"{pkg_path}/srdf/ur.srdf"
     with open(srdf_path, 'r') as f:
         robot_description_semantic_content = f.read()
-    # robot_description_semantic_content = Command(
-    #     [
-    #         PathJoinSubstitution([FindExecutable(name="load")]),
-    #         " ",
-    #         PathJoinSubstitution(
-    #             [FindPackageShare(moveit_config_package), "srdf", moveit_config_file]
-    #         ),
-    #         " ",
-    #         "name:=",
-    #         # Also ur_type parameter could be used but then the planning group names in yaml
-    #         # configs has to be updated!
-    #         "ur",
-    #         " ",
-    #         "prefix:=",
-    #         prefix,
-    #         " ",
-    #     ]
-    # )
     robot_description_semantic = {"robot_description_semantic": robot_description_semantic_content}
 
     robot_description_kinematics = PathJoinSubstitution(
@@ -179,9 +161,7 @@ def launch_setup(context, *args, **kwargs):
 
     # Trajectory Execution Configuration
     #都什么玩意一天天的
-    # controllers_path = f"{pkg_path}/config/"
     controllers_yaml = "config/" + context.perform_substitution(controllers_file)
-    # print(controllers_yaml)
     controllers_yaml = load_yaml("dual_ur5_moveit_config", controllers_yaml)
 
     # the scaled_joint_trajectory_controller does not work on mock hardware
@@ -235,38 +215,6 @@ def launch_setup(context, *args, **kwargs):
             warehouse_ros_config,
         ],
     )
-    # moveit_config = (
-    #     MoveItConfigsBuilder(robot_name="ur", package_name="dual_ur5_moveit_config")
-    #     .robot_description_semantic(Path("srdf") / "ur.srdf", {"name": ur_type})
-    #     .to_moveit_configs()
-    # )
-    # move_group_node = Node(
-    #     package="moveit_ros_move_group",
-    #     executable="move_group",
-    #     output="screen",
-    #     parameters=[
-    #         moveit_config.to_dict(),
-    #         warehouse_ros_config,
-    #         {
-    #             "use_sim_time": use_sim_time,
-    #             "publish_robot_description_semantic": publish_robot_description_semantic,
-    #         },
-    #     ],
-    # )
-
-    # robot_control_node = Node(
-    #     name="robot_control",
-    #     package="robot_control",
-    #     executable="robot_control",
-    #     output="screen",
-    #     parameters=[
-    #         robot_description,
-    #         robot_description_semantic,
-    #         robot_description_kinematics,
-    #         planning_group_config,
-    #         rtde_config
-    #     ],
-    # )
 
     # rviz with moveit configuration
     rviz_config_file = PathJoinSubstitution(
@@ -288,25 +236,6 @@ def launch_setup(context, *args, **kwargs):
             warehouse_ros_config,
         ],
     )
-    # rviz_node = Node(
-    #     package="rviz2",
-    #     condition=IfCondition(launch_rviz),
-    #     executable="rviz2",
-    #     name="rviz2_moveit",
-    #     output="log",
-    #     arguments=["-d", rviz_config_file],
-    #     parameters=[
-    #         moveit_config.robot_description,
-    #         moveit_config.robot_description_semantic,
-    #         moveit_config.robot_description_kinematics,
-    #         moveit_config.planning_pipelines,
-    #         moveit_config.joint_limits,
-    #         warehouse_ros_config,
-    #         {
-    #             "use_sim_time": use_sim_time,
-    #         },
-    #     ],
-    # )
 
     # Servo node for realtime control
     servo_yaml = load_yaml("ur_moveit_config", "config/ur_servo.yaml")
@@ -323,11 +252,7 @@ def launch_setup(context, *args, **kwargs):
         output="screen",
     )
 
-    nodes_to_start = [move_group_node,
-                    #   robot_control_node,
-                      rviz_node, 
-                    #   servo_node
-                      ]
+    nodes_to_start = [move_group_node, rviz_node]
 
     return nodes_to_start
 
@@ -338,9 +263,9 @@ def generate_launch_description():
     declared_arguments.append(
         DeclareLaunchArgument(
             "ur_type",
-            default_value="ur5",
+            default_value="ur5e",
             description="Type/series of used UR robot.",
-            choices=["ur3", "ur3e", "ur5", "ur5e", "ur10", "ur10e", "ur16e", "ur20"],
+            choices=["ur5e"],
         )
     )
     declared_arguments.append(
